@@ -30,22 +30,19 @@ public class TimeoutStitchingTest
             .AllowIntrospection(true);
 
         builder.WebHost.ConfigureKestrel(
-            kestrel =>
-            {
-                kestrel.Listen(IPAddress.Any, port, listen => listen.Protocols = HttpProtocols.Http1);
-            });
+            kestrel => { kestrel.Listen(IPAddress.Any, port, listen => listen.Protocols = HttpProtocols.Http1); });
         var app = builder.Build();
         app.MapGraphQL();
         return app;
     }
-    
+
     [Fact]
-    public async void QueryReturnsAfterTimeout_WhenExecutionTakesLongerTime_ForRemoteSchema()
+    public async void QueryIsCanceled_AfterTimeout_WhenExecutionTakesLongerTime_ForRemoteSchema()
     {
         const int port = 5000;
 
-         await using var host =  CreateRemoteHost(port);
-        
+        await using var host = CreateRemoteHost(port);
+
         await host.StartAsync();
         var client = new HttpClient();
         client.BaseAddress = new Uri($"http://localhost:{port}/");
@@ -53,21 +50,26 @@ public class TimeoutStitchingTest
         var sc = new ServiceCollection();
         sc.AddHttpClient(
             "remote",
-            (sp, httpClient) =>
-            {
-                httpClient.BaseAddress = new Uri(client.BaseAddress!, "/graphql");
-            });
+            (sp, httpClient) => { httpClient.BaseAddress = new Uri(client.BaseAddress!, "/graphql"); });
 
-        var sw = new Stopwatch();
-        
-        sw.Start();
         var response = await sc
             .AddGraphQL()
             .AddRemoteSchema("remote")
             .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(100))
             .ExecuteRequestAsync("{book {title} }");
-        sw.Stop();
-        
+
+        _testOutputHelper.WriteLine(response.ToString());
+    }
+
+    [Fact]
+    public async void QueryIsCanceled_AfterTimeout_WhenExecutionTakesLongerTime()
+    {
+        var response = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(100))
+            .ExecuteRequestAsync("{ book {title} }");
+
         _testOutputHelper.WriteLine(response.ToString());
     }
 }
