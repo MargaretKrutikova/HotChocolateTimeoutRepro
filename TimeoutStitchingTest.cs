@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using HotChocolate;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -55,10 +56,10 @@ public class TimeoutStitchingTest
         var response = await sc
             .AddGraphQL()
             .AddRemoteSchema("remote")
-            .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(100))
+            .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(1000))
             .ExecuteRequestAsync("{book {title} }");
 
-        _testOutputHelper.WriteLine(response.ToString());
+        _testOutputHelper.WriteLine(response.ToJson());
     }
 
     [Fact]
@@ -67,9 +68,9 @@ public class TimeoutStitchingTest
         var response = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(100))
+            .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(1000))
             .ExecuteRequestAsync("{ book {title} }");
 
-        _testOutputHelper.WriteLine(response.ToString());
+        _testOutputHelper.WriteLine(response.ToJson());
     }
 }
