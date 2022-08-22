@@ -1,0 +1,29 @@
+bin/
+obj/
+.vs/
+.idea/
+.vscode/
+.artifacts/
+TestResults/
+__pycache__/
+*.pyc
+*.csproj.user
+.gradle
+.out
+.sonarlint
+# Secret stuff
+*.secrets.*
+*.secret.*
+*.local.json
+# User settings
+*.DotSettings.user
+# Helm
+charts/
+requirements.lock
+*.tgz
+*~
+.DS_Store
+node_modules/
+launchSettings.json
+golang/domain-service-discovery
+schemas/
